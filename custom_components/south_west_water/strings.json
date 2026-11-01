@@ -15,6 +15,22 @@
           "meter_ref": "The smart meter reference shown on your South West Water account."
         }
       },
+      "tariffs": {
+        "title": "Tariffs & Charges",
+        "description": "Configure your South West Water charges. Pre-filled with standard metered rates. If you have a private septic tank or discount, you can adjust or zero out charges below. These can be updated anytime in the integration settings.",
+        "data": {
+          "water_rate": "Water supply rate (£/m³)",
+          "sewerage_rate": "Sewerage rate (£/m³)",
+          "water_standing_charge": "Water standing charge (£/day)",
+          "sewerage_standing_charge": "Sewerage standing charge (£/day)"
+        },
+        "data_description": {
+          "water_rate": "Volumetric charge per cubic metre of clean water supplied.",
+          "sewerage_rate": "Volumetric charge per cubic metre for wastewater (set to 0 if not on mains drainage).",
+          "water_standing_charge": "Fixed daily service charge for clean water supply.",
+          "sewerage_standing_charge": "Fixed daily service charge for sewerage (set to 0 if not on mains drainage)."
+        }
+      },
       "reauth_confirm": {
         "title": "Re-authenticate",
         "description": "Your South West Water password is no longer accepted. Enter the current password.",
@@ -33,6 +49,26 @@
       "reauth_successful": "Re-authentication was successful."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "South West Water Tariffs",
+        "description": "Update your rates and standing charges. When tariffs change around April 1st, update the figures here to keep your cost tracking accurate.",
+        "data": {
+          "water_rate": "Water supply rate (£/m³)",
+          "sewerage_rate": "Sewerage rate (£/m³)",
+          "water_standing_charge": "Water standing charge (£/day)",
+          "sewerage_standing_charge": "Sewerage standing charge (£/day)"
+        },
+        "data_description": {
+          "water_rate": "Volumetric charge per cubic metre of clean water supplied.",
+          "sewerage_rate": "Volumetric charge per cubic metre for wastewater (set to 0 if not on mains drainage).",
+          "water_standing_charge": "Fixed daily service charge for clean water supply.",
+          "sewerage_standing_charge": "Fixed daily service charge for sewerage (set to 0 if not on mains drainage)."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "water_usage": {
@@ -42,6 +78,18 @@
             "name": "Last reading"
           }
         }
+      },
+      "water_cost": {
+        "name": "Water cost"
+      },
+      "volumetric_rate": {
+        "name": "Volumetric rate"
+      },
+      "standing_charge": {
+        "name": "Standing charge"
+      },
+      "total_cost": {
+        "name": "Total water cost"
       }
     }
   }

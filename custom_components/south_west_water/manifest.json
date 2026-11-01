@@ -13,5 +13,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/kieran-tanner-9/homeassistant-south-west-water/issues",
   "requirements": [],
-  "version": "1.0.1"
+  "version": "1.1.0"
 }
