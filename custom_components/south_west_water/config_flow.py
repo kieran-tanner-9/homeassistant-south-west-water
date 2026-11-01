@@ -63,7 +63,11 @@ class SouthWestWaterConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             meter_ref = user_input[CONF_METER_REF].strip()
-            user_input = {**user_input, CONF_METER_REF: meter_ref}
+            user_input = {
+                **user_input,
+                CONF_USERNAME: user_input[CONF_USERNAME].strip(),
+                CONF_METER_REF: meter_ref,
+            }
             await self.async_set_unique_id(meter_ref)
             self._abort_if_unique_id_configured()
             error = await self._async_check_login(

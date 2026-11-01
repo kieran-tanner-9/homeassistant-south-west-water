@@ -68,7 +68,11 @@ class SouthWestWaterClient:
         self._authenticated = False
 
     async def async_login(self) -> None:
-        """Authenticate, raising SouthWestWaterAuthError if rejected."""
+        """Authenticate, raising SouthWestWaterAuthError if rejected.
+
+        The configured username can be either a My Account username or an email
+        address; as on the website, it is sent as both ``userId`` and ``email``.
+        """
         payload = {
             "userId": self._username,
             "pwd": self._password,
