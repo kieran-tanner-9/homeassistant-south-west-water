@@ -8,7 +8,8 @@ import pytest
 from homeassistant.components.diagnostics import REDACTED
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.south_west_water.const import DOMAIN
@@ -37,7 +38,7 @@ async def test_sensor_state_and_device(
     assert state.attributes["state_class"] == "total_increasing"
     assert state.attributes["unit_of_measurement"] == "m³"
     assert state.attributes["last_reading"] == "2026-06-14T23:00:00+00:00"
-    assert dr.async_get(hass).async_get_device(identifiers={(DOMAIN, mock_entry.entry_id)})
+    assert dr.async_entries_for_config_entry(dr.async_get(hass), mock_entry.entry_id)
 
 
 async def test_unload(
