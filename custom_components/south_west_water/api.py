@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
+import logging
 from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Any, Final
@@ -14,6 +16,8 @@ from .exceptions import (
     SouthWestWaterConnectionError,
     SouthWestWaterResponseError,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 BASE_URL: Final = "https://myaccountwebapi.southwestwater.co.uk/api"
 LOGIN_PATH: Final = "/SwwAuthenticate"
@@ -97,7 +101,7 @@ class SouthWestWaterClient:
         if not self._authenticated:
             await self.async_login()
         payload = {
-            "meterRef": self._meter_ref,
+            "meterRef": self._meter_ref_payload(),
             "startDateTime": start.astimezone(dt.UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
             "endDateTime": end.astimezone(dt.UTC).strftime("%Y-%m-%dT%H:%M:%S.999Z"),
             "interval": interval,
@@ -125,6 +129,10 @@ class SouthWestWaterClient:
         end = now.replace(hour=23, minute=59, second=59)
         return await self.async_get_usage(start, end)
 
+    def _meter_ref_payload(self) -> int | str:
+        """Return the meter reference as the API expects it (a JSON number)."""
+        return int(self._meter_ref) if self._meter_ref.isdigit() else self._meter_ref
+
     async def _post(self, path: str, payload: dict[str, Any]) -> tuple[int, Any]:
         """POST JSON and return (status, parsed body or None)."""
         try:
@@ -134,9 +142,13 @@ class SouthWestWaterClient:
                 headers=DEFAULT_HEADERS,
                 timeout=REQUEST_TIMEOUT,
             ) as resp:
+                text = await resp.text()
+                if resp.status >= HTTPStatus.BAD_REQUEST:
+                    # Never includes the request payload, so no credentials.
+                    _LOGGER.debug("POST %s returned HTTP %s: %.300s", path, resp.status, text)
                 try:
-                    body = await resp.json(content_type=None)
-                except aiohttp.ContentTypeError, ValueError:
+                    body = json.loads(text)
+                except ValueError:
                     body = None
                 return resp.status, body
         except (TimeoutError, aiohttp.ClientError) as err:
