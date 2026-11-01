@@ -19,7 +19,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements_test.txt
       - run: pytest --cov --cov-report=term-missing --cov-report=xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.python-version }}
           path: coverage.xml
