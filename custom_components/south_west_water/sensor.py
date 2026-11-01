@@ -83,7 +83,11 @@ class SouthWestWaterBaseSensor(CoordinatorEntity[SouthWestWaterCoordinator], Sen
     @property
     def water_standing_charge(self) -> float:
         """Return the configured water standing charge per day."""
-        return float(self.entry.options.get(CONF_WATER_STANDING_CHARGE, DEFAULT_WATER_STANDING_CHARGE))
+        return float(
+            self.entry.options.get(
+                CONF_WATER_STANDING_CHARGE, DEFAULT_WATER_STANDING_CHARGE
+            )
+        )
 
     @property
     def sewerage_standing_charge(self) -> float:

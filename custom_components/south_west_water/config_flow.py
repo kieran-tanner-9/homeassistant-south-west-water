@@ -48,10 +48,7 @@ from .exceptions import (
 _LOGGER = logging.getLogger(__name__)
 
 PASSWORD_SELECTOR = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
-RATE_SELECTOR = NumberSelector(NumberSelectorConfig(min=0.0, step=0.0001, mode=NumberSelectorMode.BOX))
-STANDING_CHARGE_SELECTOR = NumberSelector(
-    NumberSelectorConfig(min=0.0, step=0.0001, mode=NumberSelectorMode.BOX)
-)
+TARIFF_SELECTOR = NumberSelector(NumberSelectorConfig(min=0.0, mode=NumberSelectorMode.BOX))
 
 USER_SCHEMA = vol.Schema(
     {
@@ -71,21 +68,21 @@ def get_tariff_schema(options: Mapping[str, Any] | None = None) -> vol.Schema:
             vol.Required(
                 CONF_WATER_RATE,
                 default=float(opts.get(CONF_WATER_RATE, DEFAULT_WATER_RATE)),
-            ): RATE_SELECTOR,
+            ): TARIFF_SELECTOR,
             vol.Required(
                 CONF_SEWERAGE_RATE,
                 default=float(opts.get(CONF_SEWERAGE_RATE, DEFAULT_SEWERAGE_RATE)),
-            ): RATE_SELECTOR,
+            ): TARIFF_SELECTOR,
             vol.Required(
                 CONF_WATER_STANDING_CHARGE,
                 default=float(opts.get(CONF_WATER_STANDING_CHARGE, DEFAULT_WATER_STANDING_CHARGE)),
-            ): STANDING_CHARGE_SELECTOR,
+            ): TARIFF_SELECTOR,
             vol.Required(
                 CONF_SEWERAGE_STANDING_CHARGE,
                 default=float(
                     opts.get(CONF_SEWERAGE_STANDING_CHARGE, DEFAULT_SEWERAGE_STANDING_CHARGE)
                 ),
-            ): STANDING_CHARGE_SELECTOR,
+            ): TARIFF_SELECTOR,
         }
     )
 
