@@ -4,13 +4,14 @@
     "step": {
       "user": {
         "title": "South West Water",
-        "description": "Enter your My Account details and smart meter reference.",
+        "description": "Enter the username or email address you use to sign in to My Account on the South West Water website, plus your smart meter reference.",
         "data": {
-          "username": "Username (email)",
+          "username": "Username or email address",
           "password": "Password",
           "meter_ref": "Meter reference"
         },
         "data_description": {
+          "username": "Whatever you type into the sign-in box on My Account: either your username or your email address.",
           "meter_ref": "The smart meter reference shown on your South West Water account."
         }
       },

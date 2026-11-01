@@ -18,8 +18,9 @@ Requires Home Assistant 2026.10 or later.
 2. Add `https://github.com/kieran-tanner-9/homeassistant-south-west-water` as type **Integration**.
 3. Download **South West Water** and restart Home Assistant.
 4. Go to **Settings → Devices & services → Add integration**, choose
-   **South West Water** and enter your My Account username, password and
-   smart meter reference.
+   **South West Water** and enter your My Account **username or email address**
+   (whichever you use to sign in on the South West Water website), your password
+   and your smart meter reference.
 
 ## What you get
 
