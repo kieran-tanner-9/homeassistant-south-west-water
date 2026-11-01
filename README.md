@@ -5,7 +5,7 @@
 <h1 align="center">South West Water for Home Assistant</h1>
 
 <p align="center">
-  Smart meter water usage in Home Assistant, ready for the Energy dashboard.
+  Smart meter water usage and cost tracking in Home Assistant, ready for the Energy dashboard.
 </p>
 
 <p align="center">
@@ -28,11 +28,18 @@
 
 ## Features
 
-- 💧 **Water usage sensor** in m³ (`water` device class, `total_increasing`), usable in the Energy dashboard.
+- 💧 **Water usage sensor** in m³ (`water` device class, `total_increasing`), fully compatible with the Energy dashboard.
+- 💷 **Cost tracking**:
+  - **Water cost**: Cumulative volumetric usage cost (`monetary` device class), usable directly in the Energy dashboard.
+  - **Volumetric rate**: Combined clean water & sewerage rate per m³.
+  - **Standing charge**: Accumulated year-to-date fixed charges.
+  - **Total cost**: Overall estimated water bill year-to-date (usage + standing charges).
+- ⚙️ **Customizable tariffs**: Set your water supply, sewerage, and daily standing charges. Pre-filled with standard South West Water metered rates, easily adjustable if you have a septic tank (no sewerage charge) or special allowances/discounts.
+- 🔄 **Options flow**: When annual rates change around April 1st, click **Configure** in Home Assistant to update your tariffs instantly.
 - 🔌 **One device** per meter, set up entirely from the UI.
-- 🔁 **Re-authentication prompt** if your password stops working.
+- 🔁 **Re-authentication prompt** if your password ever changes.
 - 🕒 Polls every 6 hours, with a `last_reading` attribute showing when the utility last read the meter.
-- 🔒 Credentials and meter reference are redacted from diagnostics.
+- 🔒 Credentials and meter reference are automatically redacted from diagnostics.
 
 ## Requirements
 
@@ -46,17 +53,31 @@
 2. Download **South West Water** and restart Home Assistant.
 3. Go to **Settings → Devices & services → Add integration** and choose **South West Water**.
 
-## Configuration
+## Energy Dashboard Setup
 
-| Field | What to enter |
-| --- | --- |
-| Username or email address | Whatever you type into the sign-in box on My Account |
-| Password | Your My Account password |
-| Meter reference | Your smart meter reference number |
+1. In Home Assistant, navigate to **Settings → Dashboards → Energy**.
+2. Under **Water consumption**, click **Add water source** (or edit your existing meter).
+3. Select `sensor.south_west_water_water_usage`.
+4. Under **Water cost**, choose:
+   - **"Use an entity tracking the total costs"** and select `sensor.south_west_water_water_cost`, OR
+   - **"Use an entity with current price"** and select `sensor.south_west_water_volumetric_rate`.
+5. Click **Save**.
+
+## Configuration & Tariffs
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| **Username or email** | — | What you sign in with on the South West Water website |
+| **Password** | — | Your My Account password |
+| **Meter reference** | — | Smart meter reference number |
+| **Water supply rate** | £2.7129 / m³ | Clean water rate per m³ |
+| **Sewerage rate** | £3.8440 / m³ | Wastewater rate per m³ (set to 0 if on a septic tank) |
+| **Water standing charge** | £0.1630 / day | Daily service charge for clean water |
+| **Sewerage standing charge** | £0.2073 / day | Daily service charge for wastewater (set to 0 if on a septic tank) |
 
 > [!NOTE]
 > The usage total is **year-to-date** and restarts each 1 January. Home Assistant
-> treats that drop as a meter reset, so long-term statistics keep adding up.
+> treats that drop as a meter reset, so long-term statistics keep adding up smoothly.
 
 ## Troubleshooting
 
