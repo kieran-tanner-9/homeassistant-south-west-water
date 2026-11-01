@@ -12,7 +12,15 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.south_west_water.const import DOMAIN
+from custom_components.south_west_water.const import (
+    CONF_SEWERAGE_RATE,
+    CONF_SEWERAGE_STANDING_CHARGE,
+    CONF_WATER_RATE,
+    CONF_WATER_STANDING_CHARGE,
+    DEFAULT_SEWERAGE_RATE,
+    DEFAULT_WATER_RATE,
+    DOMAIN,
+)
 from custom_components.south_west_water.diagnostics import async_get_config_entry_diagnostics
 from custom_components.south_west_water.exceptions import (
     SouthWestWaterAuthError,
@@ -27,18 +35,85 @@ async def test_sensor_state_and_device(
     assert await hass.config_entries.async_setup(mock_entry.entry_id)
     await hass.async_block_till_done()
 
-    entity_id = er.async_get(hass).async_get_entity_id(
-        "sensor", DOMAIN, f"{mock_entry.entry_id}_total_usage"
+    ent_reg = er.async_get(hass)
+
+    # 1. Water usage sensor
+    usage_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{mock_entry.entry_id}_total_usage")
+    assert usage_id
+    usage_state = hass.states.get(usage_id)
+    assert usage_state is not None
+    assert float(usage_state.state) == pytest.approx(12.345)
+    assert usage_state.attributes["device_class"] == "water"
+    assert usage_state.attributes["state_class"] == "total_increasing"
+    assert usage_state.attributes["unit_of_measurement"] == "m³"
+    assert usage_state.attributes["last_reading"] == "2026-06-14T23:00:00+00:00"
+
+    # 2. Water cost sensor
+    cost_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{mock_entry.entry_id}_water_cost")
+    assert cost_id
+    cost_state = hass.states.get(cost_id)
+    assert cost_state is not None
+    expected_cost = round(12.345 * (DEFAULT_WATER_RATE + DEFAULT_SEWERAGE_RATE), 2)
+    assert float(cost_state.state) == pytest.approx(expected_cost)
+    assert cost_state.attributes["device_class"] == "monetary"
+    assert cost_state.attributes["state_class"] == "total_increasing"
+
+    # 3. Volumetric rate sensor
+    rate_id = ent_reg.async_get_entity_id(
+        "sensor", DOMAIN, f"{mock_entry.entry_id}_volumetric_rate"
     )
-    assert entity_id
-    state = hass.states.get(entity_id)
-    assert state is not None
-    assert float(state.state) == pytest.approx(12.345)
-    assert state.attributes["device_class"] == "water"
-    assert state.attributes["state_class"] == "total_increasing"
-    assert state.attributes["unit_of_measurement"] == "m³"
-    assert state.attributes["last_reading"] == "2026-06-14T23:00:00+00:00"
+    assert rate_id
+    rate_state = hass.states.get(rate_id)
+    assert rate_state is not None
+    assert float(rate_state.state) == pytest.approx(
+        round(DEFAULT_WATER_RATE + DEFAULT_SEWERAGE_RATE, 4)
+    )
+
+    # 4. Standing charge sensor
+    sc_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{mock_entry.entry_id}_standing_charge")
+    assert sc_id
+    sc_state = hass.states.get(sc_id)
+    assert sc_state is not None
+    assert float(sc_state.state) > 0
+    assert sc_state.attributes["device_class"] == "monetary"
+
+    # 5. Total cost sensor
+    total_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{mock_entry.entry_id}_total_cost")
+    assert total_id
+    total_state = hass.states.get(total_id)
+    assert total_state is not None
+    assert float(total_state.state) == pytest.approx(
+        round(float(cost_state.state) + float(sc_state.state), 2), abs=0.02
+    )
+
     assert dr.async_entries_for_config_entry(dr.async_get(hass), mock_entry.entry_id)
+
+
+async def test_options_update_reloads_entry(
+    hass: HomeAssistant, mock_client: AsyncMock, mock_entry: MockConfigEntry
+) -> None:
+    mock_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Update options to custom zero-sewerage rate
+    hass.config_entries.async_update_entry(
+        mock_entry,
+        options={
+            CONF_WATER_RATE: 2.5000,
+            CONF_SEWERAGE_RATE: 0.0,
+            CONF_WATER_STANDING_CHARGE: 0.1500,
+            CONF_SEWERAGE_STANDING_CHARGE: 0.0,
+        },
+    )
+    await hass.async_block_till_done()
+
+    ent_reg = er.async_get(hass)
+    cost_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{mock_entry.entry_id}_water_cost")
+    cost_state = hass.states.get(cost_id)
+    assert cost_state is not None
+    # 12.345 * 2.5 = 30.86
+    assert float(cost_state.state) == pytest.approx(30.86)
 
 
 async def test_unload(
@@ -82,3 +157,4 @@ async def test_diagnostics_redacts_secrets(
         "meter_ref": REDACTED,
     }
     assert result["usage"]["total_usage_m3"] == pytest.approx(12.345)
+    assert isinstance(result["options"], dict)
