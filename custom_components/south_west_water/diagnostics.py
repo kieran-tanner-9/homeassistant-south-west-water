@@ -21,6 +21,7 @@ async def async_get_config_entry_diagnostics(
     usage = entry.runtime_data.data
     return {
         "entry": async_redact_data(dict(entry.data), TO_REDACT),
+        "options": dict(entry.options),
         "usage": {
             "total_usage_m3": usage.total_usage_m3,
             "latest_reading": usage.latest_reading.isoformat() if usage.latest_reading else None,
