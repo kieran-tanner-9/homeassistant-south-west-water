@@ -60,6 +60,8 @@ home-assistant.log*
 south_west_water.zip
 
 # ---------- IDEs / agents ----------
+AGENTS.md
+AGENTS*.md
 .vscode/
 !.vscode/extensions.json
 .idea/
