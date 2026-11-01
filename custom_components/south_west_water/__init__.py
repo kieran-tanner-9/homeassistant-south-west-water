@@ -1,14 +1,34 @@
-"""The South West Water integration (scaffold)."""
+"""The South West Water integration."""
 
 from __future__ import annotations
 
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
-from .const import DOMAIN
+from .api import SouthWestWaterClient
+from .const import CONF_METER_REF
+from .coordinator import SouthWestWaterConfigEntry, SouthWestWaterCoordinator
+
+PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the integration. Replaced by config-entry setup in phase 3."""
-    hass.data.setdefault(DOMAIN, {})
+async def async_setup_entry(hass: HomeAssistant, entry: SouthWestWaterConfigEntry) -> bool:
+    """Set up South West Water from a config entry."""
+    # Login is cookie based, so use a session private to this entry.
+    client = SouthWestWaterClient(
+        async_create_clientsession(hass),
+        entry.data[CONF_USERNAME],
+        entry.data[CONF_PASSWORD],
+        entry.data[CONF_METER_REF],
+    )
+    coordinator = SouthWestWaterCoordinator(hass, entry, client)
+    await coordinator.async_config_entry_first_refresh()
+    entry.runtime_data = coordinator
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: SouthWestWaterConfigEntry) -> bool:
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
