@@ -12,4 +12,18 @@ for use with the Energy dashboard.
 
 Requires Home Assistant 2026.10 or later.
 
-Status: scaffold, in development.
+## Installation (HACS)
+
+1. In HACS, open the menu → **Custom repositories**.
+2. Add `https://github.com/kieran-tanner-9/homeassistant-south-west-water` as type **Integration**.
+3. Download **South West Water** and restart Home Assistant.
+4. Go to **Settings → Devices & services → Add integration**, choose
+   **South West Water** and enter your My Account username, password and
+   smart meter reference.
+
+## What you get
+
+One device with a **Water usage** sensor (m³, `water` device class,
+`total_increasing`), usable in the Energy dashboard. Data is polled every
+6 hours. Note the total is year-to-date and restarts each 1 January.
+Credentials and meter reference are redacted from diagnostics.
