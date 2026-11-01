@@ -132,7 +132,7 @@ class SouthWestWaterClient:
             ) as resp:
                 try:
                     body = await resp.json(content_type=None)
-                except (aiohttp.ContentTypeError, ValueError):
+                except aiohttp.ContentTypeError, ValueError:
                     body = None
                 return resp.status, body
         except (TimeoutError, aiohttp.ClientError) as err:
