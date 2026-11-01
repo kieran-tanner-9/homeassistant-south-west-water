@@ -1,6 +1,9 @@
 {
   "domain": "south_west_water",
   "name": "South West Water",
+  "categories": [
+    "water.meters_leak_detection"
+  ],
   "codeowners": [
     "@kieran-tanner-9"
   ],
