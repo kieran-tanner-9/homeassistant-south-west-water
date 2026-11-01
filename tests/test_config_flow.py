@@ -85,3 +85,12 @@ async def test_reauth_flow(
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"
     assert mock_entry.data[CONF_PASSWORD] == "new-fake-password"
+
+
+async def test_username_is_trimmed(hass: HomeAssistant, mock_client: AsyncMock) -> None:
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    with patch("custom_components.south_west_water.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {**FAKE_DATA, "username": "  some.user  "}
+        )
+    assert result["data"]["username"] == "some.user"
