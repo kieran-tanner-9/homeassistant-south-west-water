@@ -188,9 +188,7 @@ class SouthWestWaterConfigFlow(ConfigFlow, domain=DOMAIN):
 class SouthWestWaterOptionsFlow(OptionsFlow):
     """Handle options flow for South West Water."""
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
