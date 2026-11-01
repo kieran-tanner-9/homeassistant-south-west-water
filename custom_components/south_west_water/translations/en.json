@@ -1,3 +1,47 @@
 {
-  "title": "South West Water"
+  "title": "South West Water",
+  "config": {
+    "step": {
+      "user": {
+        "title": "South West Water",
+        "description": "Enter your My Account details and smart meter reference.",
+        "data": {
+          "username": "Username (email)",
+          "password": "Password",
+          "meter_ref": "Meter reference"
+        },
+        "data_description": {
+          "meter_ref": "The smart meter reference shown on your South West Water account."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "Your South West Water password is no longer accepted. Enter the current password.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid username or password.",
+      "cannot_connect": "Could not connect to South West Water.",
+      "unknown": "Unexpected error, check the logs."
+    },
+    "abort": {
+      "already_configured": "This meter is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "water_usage": {
+        "name": "Water usage",
+        "state_attributes": {
+          "last_reading": {
+            "name": "Last reading"
+          }
+        }
+      }
+    }
+  }
 }
