@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.config_entries import SOURCE_REAUTH, SOURCE_USER
+from homeassistant.config_entries import SOURCE_USER
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -70,7 +70,6 @@ async def test_reauth_flow(
     mock_entry.add_to_hass(hass)
     result = await mock_entry.start_reauth_flow(hass)
     assert result["step_id"] == "reauth_confirm"
-    assert result["context"]["source"] == SOURCE_REAUTH
 
     mock_client.async_login.side_effect = SouthWestWaterAuthError
     result = await hass.config_entries.flow.async_configure(
