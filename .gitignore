@@ -1,0 +1,75 @@
+# ---------- SECRETS (never commit) ----------
+.env
+.env.*
+*.env
+secrets.yaml
+secrets.yml
+*.secret
+*.pem
+*.key
+credentials*.json
+token*.txt
+# Real API captures may contain meter refs / account data. Keep fakes only.
+tests/fixtures/real_*
+tests/fixtures/*.private.json
+captures/
+*.har
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+.venv/
+venv/
+env/
+ENV/
+
+# ---------- Testing / coverage ----------
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# ---------- Linters / type checkers ----------
+.ruff_cache/
+.mypy_cache/
+.pytype/
+
+# ---------- Home Assistant dev leftovers ----------
+config/
+home-assistant.log*
+.storage/
+.cloud/
+*.db
+*.db-shm
+*.db-wal
+
+# ---------- Release artefacts ----------
+*.zip
+south_west_water.zip
+
+# ---------- IDEs / agents ----------
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.gemini/
+.antigravity/
+.agent/scratch/
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+desktop.ini
