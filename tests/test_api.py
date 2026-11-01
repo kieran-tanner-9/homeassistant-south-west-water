@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import json as jsonlib
 from typing import Any
 
 import aiohttp
@@ -39,8 +40,8 @@ class FakeResponse:
     async def __aexit__(self, *exc: object) -> None:
         return None
 
-    async def json(self, content_type: str | None = None) -> Any:
-        return self._body
+    async def text(self) -> str:
+        return "" if self._body is None else jsonlib.dumps(self._body)
 
 
 class FakeSession:
@@ -60,7 +61,7 @@ class FakeSession:
 
 def make_client(*queue: tuple[int, Any] | Exception) -> tuple[SouthWestWaterClient, FakeSession]:
     session = FakeSession(*queue)
-    return SouthWestWaterClient(session, "user@example.invalid", "fake-pass", "000000"), session  # type: ignore[arg-type]
+    return SouthWestWaterClient(session, "user@example.invalid", "fake-pass", "123456"), session  # type: ignore[arg-type]
 
 
 async def test_login_success() -> None:
@@ -104,6 +105,7 @@ async def test_usage_request_payload() -> None:
     assert body["startDateTime"] == "2026-01-01T00:00:00.000Z"
     assert body["endDateTime"] == "2026-06-15T23:59:59.999Z"
     assert body["interval"] == "month"
+    assert body["meterRef"] == 123456  # numeric, as the website API expects
 
 
 async def test_usage_without_latest_reading() -> None:
