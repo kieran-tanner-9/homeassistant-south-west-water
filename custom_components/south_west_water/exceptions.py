@@ -17,3 +17,7 @@ class SouthWestWaterAuthError(SouthWestWaterError):
 
 class SouthWestWaterResponseError(SouthWestWaterError):
     """The API answered with something unexpected."""
+
+
+class SWWApiError(SouthWestWaterResponseError):
+    """The API returned invalid, empty, or unparseable data."""

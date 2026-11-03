@@ -27,6 +27,7 @@ from .const import (
     DEFAULT_WATER_RATE,
     DEFAULT_WATER_STANDING_CHARGE,
     DOMAIN,
+    MAX_CONSECUTIVE_FAILURES,
     NAME,
 )
 from .coordinator import SouthWestWaterConfigEntry, SouthWestWaterCoordinator
@@ -99,6 +100,18 @@ class SouthWestWaterBaseSensor(CoordinatorEntity[SouthWestWaterCoordinator], Sen
         """Return Home Assistant's configured currency."""
         return self.hass.config.currency or "GBP"
 
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available.
+
+        Retains the last good data through transient poll failures,
+        only becoming unavailable after consecutive failures exceed the limit.
+        """
+        return (
+            self.coordinator.data is not None
+            and self.coordinator.consecutive_failures < MAX_CONSECUTIVE_FAILURES
+        )
+
 
 class SouthWestWaterUsageSensor(SouthWestWaterBaseSensor):
     """Cumulative water usage, suitable for the Energy dashboard."""
@@ -117,13 +130,17 @@ class SouthWestWaterUsageSensor(SouthWestWaterBaseSensor):
         self._attr_unique_id = f"{entry.entry_id}_total_usage"
 
     @property
-    def native_value(self) -> float:
+    def native_value(self) -> float | None:
         """Return the cumulative usage in m³."""
+        if self.coordinator.data is None:
+            return None
         return self.coordinator.data.total_usage_m3
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return when the utility last took a reading."""
+        if self.coordinator.data is None:
+            return {"last_reading": None}
         latest = self.coordinator.data.latest_reading
         return {"last_reading": latest.isoformat() if latest else None}
 
@@ -149,8 +166,10 @@ class SouthWestWaterCostSensor(SouthWestWaterBaseSensor):
         return self.currency
 
     @property
-    def native_value(self) -> float:
+    def native_value(self) -> float | None:
         """Return the cumulative volumetric cost in currency units."""
+        if self.coordinator.data is None:
+            return None
         combined_rate = self.water_rate + self.sewerage_rate
         return round(self.coordinator.data.total_usage_m3 * combined_rate, 2)
 
@@ -228,8 +247,10 @@ class SouthWestWaterTotalCostSensor(SouthWestWaterBaseSensor):
         return self.currency
 
     @property
-    def native_value(self) -> float:
+    def native_value(self) -> float | None:
         """Return the total water cost YTD."""
+        if self.coordinator.data is None:
+            return None
         combined_rate = self.water_rate + self.sewerage_rate
         usage_cost = self.coordinator.data.total_usage_m3 * combined_rate
         days = dt.datetime.now(dt.UTC).timetuple().tm_yday

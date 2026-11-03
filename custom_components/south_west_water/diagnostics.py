@@ -18,12 +18,17 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: SouthWestWaterConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    usage = entry.runtime_data.data
+    coordinator = entry.runtime_data
+    usage = coordinator.data
     return {
         "entry": async_redact_data(dict(entry.data), TO_REDACT),
         "options": dict(entry.options),
+        "consecutive_failures": coordinator.consecutive_failures,
+        "consecutive_auth_failures": coordinator.consecutive_auth_failures,
         "usage": {
             "total_usage_m3": usage.total_usage_m3,
             "latest_reading": usage.latest_reading.isoformat() if usage.latest_reading else None,
-        },
+        }
+        if usage
+        else None,
     }

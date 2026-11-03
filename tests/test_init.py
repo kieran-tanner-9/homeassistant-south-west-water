@@ -25,7 +25,9 @@ from custom_components.south_west_water.diagnostics import async_get_config_entr
 from custom_components.south_west_water.exceptions import (
     SouthWestWaterAuthError,
     SouthWestWaterConnectionError,
+    SWWApiError,
 )
+from tests.conftest import FAKE_USAGE
 
 
 async def test_sensor_state_and_device(
@@ -158,3 +160,95 @@ async def test_diagnostics_redacts_secrets(
     }
     assert result["usage"]["total_usage_m3"] == pytest.approx(12.345)
     assert isinstance(result["options"], dict)
+    assert result["consecutive_failures"] == 0
+    assert result["consecutive_auth_failures"] == 0
+
+
+async def test_sensor_keeps_last_good_data_on_transient_failure(
+    hass: HomeAssistant, mock_client: AsyncMock, mock_entry: MockConfigEntry
+) -> None:
+    mock_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_entry.entry_id)
+    await hass.async_block_till_done()
+
+    ent_reg = er.async_get(hass)
+    usage_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{mock_entry.entry_id}_total_usage")
+    assert usage_id
+    assert float(hass.states.get(usage_id).state) == pytest.approx(12.345)
+
+    coordinator = mock_entry.runtime_data
+    mock_client.async_get_year_to_date.side_effect = SWWApiError("Empty response")
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert not coordinator.last_update_success
+    assert coordinator.consecutive_failures == 1
+    usage_state = hass.states.get(usage_id)
+    assert usage_state is not None
+    assert usage_state.state != "0"
+    assert usage_state.state != "0.0"
+    assert float(usage_state.state) == pytest.approx(12.345)
+
+
+async def test_sensor_unavailable_after_max_consecutive_failures(
+    hass: HomeAssistant, mock_client: AsyncMock, mock_entry: MockConfigEntry
+) -> None:
+    mock_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_entry.entry_id)
+    await hass.async_block_till_done()
+
+    ent_reg = er.async_get(hass)
+    usage_id = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{mock_entry.entry_id}_total_usage")
+    assert usage_id
+
+    coordinator = mock_entry.runtime_data
+    mock_client.async_get_year_to_date.side_effect = SWWApiError("Empty response")
+
+    # 1st failure: remains available with last good value
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(usage_id).state == "12.345"
+
+    # 2nd failure: remains available with last good value
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(usage_id).state == "12.345"
+
+    # 3rd failure: becomes unavailable
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(usage_id).state == "unavailable"
+
+    # Next update succeeds: recovers
+    mock_client.async_get_year_to_date.side_effect = None
+    mock_client.async_get_year_to_date.return_value = FAKE_USAGE
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(usage_id).state == "12.345"
+    assert coordinator.consecutive_failures == 0
+
+
+async def test_repeated_auth_failures_trigger_reauth(
+    hass: HomeAssistant, mock_client: AsyncMock, mock_entry: MockConfigEntry
+) -> None:
+    mock_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = mock_entry.runtime_data
+    mock_client.async_get_year_to_date.side_effect = SouthWestWaterAuthError("Token expired")
+
+    # 1st auth failure: coordinator fails update, does not trigger reauth immediately
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert not any(hass.config_entries.flow.async_progress_by_handler(DOMAIN))
+
+    # 2nd auth failure: still update failure
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert not any(hass.config_entries.flow.async_progress_by_handler(DOMAIN))
+
+    # 3rd auth failure: triggers reauth flow
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert any(hass.config_entries.flow.async_progress_by_handler(DOMAIN))
