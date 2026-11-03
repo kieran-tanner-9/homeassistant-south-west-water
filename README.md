@@ -15,6 +15,7 @@
   <a href="https://github.com/kieran-tanner-9/homeassistant-south-west-water/actions/workflows/lint.yml"><img alt="Lint" src="https://img.shields.io/github/actions/workflow/status/kieran-tanner-9/homeassistant-south-west-water/lint.yml?branch=main&label=lint&style=flat-square"></a>
   <a href="https://github.com/kieran-tanner-9/homeassistant-south-west-water/actions/workflows/tests.yml"><img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/kieran-tanner-9/homeassistant-south-west-water/tests.yml?branch=main&label=tests&style=flat-square"></a>
   <a href="LICENSE"><img alt="Licence" src="https://img.shields.io/github/license/kieran-tanner-9/homeassistant-south-west-water?style=flat-square"></a>
+  <a href="https://buymeacoffee.com/kierantanner9"><img alt="Buy Me A Coffee" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee&logoColor=black"></a>
 </p>
 
 <p align="center">
@@ -81,7 +82,15 @@
 
 ## Troubleshooting
 
-If the integration fails to set up, enable debug logging and check the log:
+### Why did my water usage drop to 0 or become unavailable?
+
+South West Water's web API occasionally returns an empty or unauthenticated payload (reporting `0.0 m³` and a default date of `0001-01-01`) if the server session expires between polling intervals or if the utility's smart meter backend is temporarily unable to retrieve fresh meter data.
+
+The integration automatically detects this, rejects empty or dropped payloads, and preserves your last valid reading across transient poll failures to ensure your Home Assistant Energy dashboard statistics are never corrupted by zero readings. If multiple consecutive polls fail, the sensor transitions to `unavailable` until valid readings resume.
+
+### Debug Logging
+
+If the integration fails to set up or update, enable debug logging and check the log:
 
 ```yaml
 logger:
@@ -89,7 +98,13 @@ logger:
     custom_components.south_west_water: debug
 ```
 
-The log shows the HTTP status and reply for failed requests, never your credentials.
+The log records HTTP status codes, poll date windows, response keys, and parsed totals—never your credentials, tokens, or meter references.
+
+## Support
+
+If this integration helps you track your water usage and bills, consider buying a coffee!
+
+<a href="https://buymeacoffee.com/kierantanner9"><img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=kierantanner9&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee"></a>
 
 ## Disclaimer
 
